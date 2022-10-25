@@ -10,7 +10,7 @@ import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.Map;
 
-public class QueryMapper implements Mapper<String, Triple<Integer,Integer, String>,String,Long> {
+public class QueryMapper implements Mapper<String, Triple<Integer,Integer, String>,String,Tuple<Long, String>> {
     private final Map<Integer, Sensor> sensors;
 
     private int minPedestrians;
@@ -20,10 +20,10 @@ public class QueryMapper implements Mapper<String, Triple<Integer,Integer, Strin
         this.minPedestrians = minPedestrians;
     }
 
-    @Override
-    public void map(String s, Triple<Integer,Integer, String> reading, Context<String,Long> context) {
+    public void map(String s, Triple<Integer,Integer, String> reading, Context<String,Tuple<Long, String>> context) {
         var sensor = sensors.get(reading.getLeft());
         if (sensor.getStatus() == SensorStatus.ACTIVE && reading.getMiddle() >= minPedestrians)
-            context.emit(sensor.getName(),Long.valueOf(reading.getMiddle()));
+            context.emit(sensor.getName(),new Tuple<>(Long.valueOf(reading.getMiddle()), reading.getRight()));
     }
+
 }

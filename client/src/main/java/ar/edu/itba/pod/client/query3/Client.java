@@ -1,10 +1,13 @@
 package ar.edu.itba.pod.client.query3;
 
+import ar.edu.itba.pod.client.models.Arguments;
 import ar.edu.itba.pod.client.query3.CliParser;
 import ar.edu.itba.pod.client.utils.Hazelcast;
 import ar.edu.itba.pod.client.utils.PerformanceTimer;
 import ar.edu.itba.pod.csv.CsvHelper;
+import ar.edu.itba.pod.models.Month;
 import ar.edu.itba.pod.models.Sensor;
+import ar.edu.itba.pod.models.Tuple;
 import ar.edu.itba.pod.query3.QueryCollator;
 import ar.edu.itba.pod.query3.QueryCombinerFactory;
 import ar.edu.itba.pod.query3.QueryMapper;
@@ -17,6 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -48,13 +54,14 @@ public class Client {
         log.info("Query 3 client starting...");
 
         var parser = new CliParser();
-        var arguments = parser.parse(args);
+//        Optional<CliParser.Arguments> arguments = parser.parse2(args);
+        Optional<CliParser.Arguments> a;
+        Optional<Arguments> arguments = parser.parse(args);
 
         if (arguments.isEmpty()) {
             log.error("Invalid arguments");
             return;
         }
-
         var inPath = arguments.get().getInPath();
 
         try {
@@ -64,10 +71,9 @@ public class Client {
             var sensors = CsvHelper.parseSensorFile(inPath + SENSORS_FILE_NAME)
                     .stream()
                     .collect(Collectors.toMap(Sensor::getId, t->t));
-//            todo: month New Quay;15782;14/11/2019 11:00
             var readings = CsvHelper.parseReadingsFile(inPath + READINGS_FILE_NAME)
                     .stream()
-                    .map(t -> Triple.of(t.getSensorId(), t.getHourlyCount(), String.format("%d/%s/%d %d:00", t.getDayOfTheMonth(), t.getMonth(), t.getYear(), t.getHourOfTheDay() )))
+                    .map(t -> Triple.of(t.getSensorId(), t.getHourlyCount(), String.format("%d/%s/%d %d:00", t.getDayOfTheMonth(),  MonthToNum(t.getMonth()), t.getYear(), t.getHourOfTheDay() )))
                     .toList();
 
             log.info("Read {} sensors and {} readings", sensors.size(), readings.size());
@@ -89,37 +95,72 @@ public class Client {
             var jobTracker = hazelcast.getJobTracker(HZ_JOB_TRACKER);
             var job = jobTracker.newJob(dataSource);
 
+
             timer.startMapReduce();
 
+
+            var arg = (CliParser.Arguments) arguments.get();
             var future = job
-                    .mapper(new QueryMapper(sensors, arguments.get().getDMin()))
+                    .mapper(new QueryMapper(sensors, arg.getMin()))
                     .combiner(new QueryCombinerFactory())
                     .reducer(new QueryReducerFactory())
                     .submit(new QueryCollator());
 
-            var result = future.get();
+            List<Map.Entry<String, Tuple<Long, String>>> result = new ArrayList<>();
+            result = future.get();
 
             CsvHelper.writeFile(
-                    arguments.get().getOutPath() + EXPORT_FILE_NAME,
-                    "Sensor;Total_Count",
-                    result,
-                    entry -> entry.getKey() + ";" + entry.getValue()
+                        arguments.get().getOutPath() + EXPORT_FILE_NAME,
+                        "Sensor;Total_Count",
+                        result,
+                        entry -> entry.getKey() + ";" + entry.getValue().getFirst()+ ";" + entry.getValue().getSecond()
             );
 
-            timer.endMapReduce();
+
+
+
+
 
         } catch (IOException e) {
             log.error("The files 'sensors.csv' and 'readings.csv' are not in the specified inFolder: {}", arguments.get().getInPath());
         }
-        catch (InterruptedException | ExecutionException e) {
-            log.error("Hazelcast execution error {}",e.getMessage(),e);
-        }
+
         catch (Exception e){
             log.error("Unexpected error: {}",e.getMessage(),e);
         }
         finally {
             // Shutdown
             HazelcastClient.shutdownAll();
+        }
+    }
+    private static String MonthToNum(Month month){
+        switch (month){
+            case JANUARY:
+                return "01";
+            case FEBRUARY:
+                return "02";
+            case MARCH:
+                return "03";
+            case APRIL:
+                return "04";
+            case MAY:
+                return "05";
+            case JUNE:
+                return "06";
+            case JULY:
+                return "07";
+            case AUGUST:
+                return "08";
+            case SEPTEMBER:
+                return "09";
+            case OCTOBER:
+                return "10";
+            case NOVEMBER:
+                return "11";
+            case DECEMBER:
+                return "12";
+            default:
+                return "-1";
         }
     }
 }

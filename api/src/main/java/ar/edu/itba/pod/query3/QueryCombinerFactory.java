@@ -1,30 +1,31 @@
 package ar.edu.itba.pod.query3;
 
+import ar.edu.itba.pod.models.Tuple;
 import com.hazelcast.mapreduce.Combiner;
 import com.hazelcast.mapreduce.CombinerFactory;
 
-public class QueryCombinerFactory implements CombinerFactory<String,Long,Long> {
+public class QueryCombinerFactory implements CombinerFactory<String, Tuple<Long, String>,Tuple<Long, String>> {
     @Override
-    public Combiner<Long, Long> newCombiner(String integer) {
+    public Combiner<Tuple<Long, String>, Tuple<Long, String>> newCombiner(String integer) {
         return new QueryCombiner();
     }
 
-    private static class QueryCombiner extends Combiner<Long, Long> {
-        private long max = 0;
+    private static class QueryCombiner extends Combiner<Tuple<Long, String>, Tuple<Long, String>> {
+        private Tuple<Long, String> max = new Tuple<>(0L,"");
 
         @Override
-        public  void combine(Long integer) {
-            if(max<integer)
+        public  void combine(Tuple<Long, String> integer) {
+            if(max.getFirst()<integer.getFirst())
                 max = integer;
         }
         
         @Override
         public void reset() {
-            max = 0;
+            max = new Tuple<>(0L,"");;
         }
         
         @Override
-        public Long finalizeChunk() {
+        public Tuple<Long, String> finalizeChunk() {
             return max;
         }
     }
