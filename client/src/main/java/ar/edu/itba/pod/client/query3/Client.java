@@ -8,16 +8,12 @@ import ar.edu.itba.pod.csv.CsvHelper;
 import ar.edu.itba.pod.models.Month;
 import ar.edu.itba.pod.models.Sensor;
 import ar.edu.itba.pod.models.Tuple;
-import ar.edu.itba.pod.query3.QueryCollator;
-import ar.edu.itba.pod.query3.QueryCombinerFactory;
-import ar.edu.itba.pod.query3.QueryMapper;
-import ar.edu.itba.pod.query3.QueryReducerFactory;
+import ar.edu.itba.pod.query3.*;
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.core.IList;
 import com.hazelcast.mapreduce.KeyValueSource;
 import lombok.Cleanup;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Triple;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,8 +50,6 @@ public class Client {
         log.info("Query 3 client starting...");
 
         var parser = new CliParser();
-//        Optional<CliParser.Arguments> arguments = parser.parse2(args);
-        Optional<CliParser.Arguments> a;
         Optional<Arguments> arguments = parser.parse(args);
 
         if (arguments.isEmpty()) {
@@ -73,7 +67,7 @@ public class Client {
                     .collect(Collectors.toMap(Sensor::getId, t->t));
             var readings = CsvHelper.parseReadingsFile(inPath + READINGS_FILE_NAME)
                     .stream()
-                    .map(t -> Triple.of(t.getSensorId(), t.getHourlyCount(), String.format("%d/%s/%d %d:00", t.getDayOfTheMonth(),  MonthToNum(t.getMonth()), t.getYear(), t.getHourOfTheDay() )))
+                    .map(t ->new QueryReading(t.getSensorId(), t.getHourlyCount(), String.format("%d/%s/%d %d:00", t.getDayOfTheMonth(),  MonthToNum(t.getMonth()), t.getYear(), t.getHourOfTheDay() )))
                     .toList();
 
             log.info("Read {} sensors and {} readings", sensors.size(), readings.size());
@@ -85,7 +79,7 @@ public class Client {
 
             timer.startLoadingDataToHazelcast();
 
-            IList<Triple<Integer,Integer, String>> readingsList = hazelcast.getList(HZ_READINGS_LIST);
+            IList<QueryReading> readingsList = hazelcast.getList(HZ_READINGS_LIST);
             readingsList.clear();
             readingsList.addAll(readings);
 
