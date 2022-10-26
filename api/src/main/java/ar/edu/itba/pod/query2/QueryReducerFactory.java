@@ -24,10 +24,10 @@ public class QueryReducerFactory implements ReducerFactory<Integer, Tuple<Boolea
 
         @Override
         public void reduce(Tuple<Boolean, Integer> booleanIntegerTuple) {
-            if (booleanIntegerTuple.first()) {
-                sumWeekend = sumWeekend + booleanIntegerTuple.second();
+            if (booleanIntegerTuple.getFirst()) {
+                sumWeekend = sumWeekend + booleanIntegerTuple.getSecond();
             } else {
-                sumWeekday = sumWeekday + booleanIntegerTuple.second();
+                sumWeekday = sumWeekday + booleanIntegerTuple.getSecond();
             }
         }
 

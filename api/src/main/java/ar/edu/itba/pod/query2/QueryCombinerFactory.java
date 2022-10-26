@@ -16,10 +16,10 @@ public class QueryCombinerFactory implements CombinerFactory<Integer, Tuple<Bool
 
         @Override
         public void combine(Tuple<Boolean, Integer> booleanIntegerTuple) {
-            if (booleanIntegerTuple.first()) {
-                sumWeekend += booleanIntegerTuple.second();
+            if (booleanIntegerTuple.getFirst()) {
+                sumWeekend += booleanIntegerTuple.getSecond();
             } else {
-                sumWeekday += booleanIntegerTuple.second();
+                sumWeekday += booleanIntegerTuple.getSecond();
             }
         }
 

@@ -21,7 +21,7 @@ public class QueryCollator implements Collator<Map.Entry<Integer, Tuple<Long, Lo
         @Override
         public int compare(Map.Entry<Integer, Tuple<Long, Long>> o1, Map.Entry<Integer, Tuple<Long, Long>> o2) {
             var yearsComparison =  o2.getKey() - o1.getKey();
-            return yearsComparison == 0 ? o1.getValue().first().compareTo(o2.getValue().first()) : yearsComparison;
+            return yearsComparison == 0 ? o1.getValue().getFirst().compareTo(o2.getValue().getFirst()) : yearsComparison;
         }
     }
 }

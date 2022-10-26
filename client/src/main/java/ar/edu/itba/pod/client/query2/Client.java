@@ -98,7 +98,7 @@ public class Client {
                     arguments.get().getOutPath() + EXPORT_FILE_NAME,
                     "Year;Weekdays_Count;Weekends_Count;Total_Count",
                     result,
-                    entry -> String.format("%d; %d; %d; %d", entry.getKey(), entry.getValue().first(), entry.getValue().getSecond(), entry.getValue().first() + entry.getValue().getSecond())
+                    entry -> String.format("%d; %d; %d; %d", entry.getKey(), entry.getValue().getFirst(), entry.getValue().getSecond(), entry.getValue().getFirst() + entry.getValue().getSecond())
             );
 
             timer.endMapReduce();
