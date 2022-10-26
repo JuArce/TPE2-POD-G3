@@ -55,9 +55,10 @@ public class CsvHelper {
 
         buffer.write(header);
         for (var entry: a.entrySet()) {
-            buffer.newLine();
+
             for (var tuple: entry.getValue()) {
-                buffer.write(String.format("%s,%s,%s", entry.getKey() * 1000000, tuple.getFirst(), tuple.getSecond()));
+                buffer.newLine();
+                buffer.write(String.format("%s;%s;%s", entry.getKey() * 1000000, tuple.getFirst(), tuple.getSecond()));
             }
 
         }
