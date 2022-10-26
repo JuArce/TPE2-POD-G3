@@ -5,7 +5,7 @@ import lombok.Getter;
 import java.io.Serializable;
 import java.util.Objects;
 
-public final class Tuple<T, K> implements Serializable {
+public class Tuple<T, K> implements Serializable {
     @Getter
     private final T first;
     @Getter
